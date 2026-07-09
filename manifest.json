@@ -1,0 +1,31 @@
+{
+  "name": "Tasas VE — BCV & Binance",
+  "short_name": "Tasas VE",
+  "description": "Tasas de cambio de Venezuela en tiempo real: BCV dólar, BCV euro y referencia Binance/paralelo, con calculadora y brecha cambiaria.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B1F26",
+  "theme_color": "#0B1F26",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

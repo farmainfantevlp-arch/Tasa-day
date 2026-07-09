@@ -27,6 +27,27 @@ tasas-ve-app/
 └── LICENSE
 ```
 
+## 📱 Instalarla como app
+
+Esta app es una **PWA (Progressive Web App)**: una vez publicada con HTTPS (por ejemplo con GitHub Pages), puedes instalarla como si fuera una app nativa.
+
+**⚠️ Requisito importante:** el repositorio debe ser **público**, o tener GitHub Pro/Team/Enterprise si es privado — GitHub Pages en repos privados no está disponible en el plan gratuito.
+
+### En computadora (Chrome / Edge)
+1. Abre la URL publicada (ej. `https://tu-usuario.github.io/Tasa-day/`).
+2. Haz clic en el ícono de instalación (⊕ o pantalla con flecha) que aparece a la derecha de la barra de direcciones.
+3. Confirma "Instalar". Quedará como app de escritorio, con su propio ícono y ventana, sin barra del navegador.
+
+### En Android (Chrome)
+1. Abre la URL publicada.
+2. Toca el menú (⋮) → **"Instalar app"** o **"Agregar a pantalla de inicio"**.
+
+### En iPhone/iPad (Safari)
+1. Abre la URL publicada.
+2. Toca el botón de compartir (□↑) → **"Agregar a pantalla de inicio"**.
+
+Una vez instalada, la app abre en modo standalone (pantalla completa, sin barra del navegador) y muestra un ícono propio.
+
 ## 🚀 Cómo correrlo
 
 No requiere instalación. Simplemente abre `index.html` en cualquier navegador, o sirve la carpeta con cualquier servidor estático:
