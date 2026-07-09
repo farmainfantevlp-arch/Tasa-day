@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasas VE — BCV & Binance</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#0B1F26',
+          ink2: '#102B33',
+          panel: '#12333C',
+          paper: '#ECE7DA',
+          paperdim: '#93A6A3',
+          bolivar: '#3E9B7A',
+          binance: '#E8A33D',
+          euro: '#7BA7C9',
+          danger: '#D9724F',
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body{ background:
+      radial-gradient(circle at 12% 0%, rgba(62,155,122,0.10), transparent 45%),
+      radial-gradient(circle at 88% 8%, rgba(232,163,61,0.08), transparent 40%),
+      #0B1F26; }
+  ::selection{ background:#E8A33D33; }
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.25}}
+  .pulse-dot{ animation:pulse-dot 2s infinite; }
+  .tab-active{ color:#ECE7DA; border-bottom-color:#E8A33D; }
+  .tab-inactive{ color:#93A6A3; border-bottom-color:transparent; }
+  ::-webkit-scrollbar{ height:6px; width:6px; }
+  ::-webkit-scrollbar-thumb{ background:#ffffff22; border-radius:4px; }
+</style>
+</head>
+<body class="min-h-screen text-paper font-sans px-4 sm:px-6 py-8 sm:py-12">
+<div class="max-w-4xl mx-auto">
+
+  <!-- ===== Header ===== -->
+  <header class="mb-8">
+    <div class="flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] uppercase text-bolivar">
+      <span class="w-1.5 h-1.5 rounded-full bg-bolivar shadow-[0_0_8px_#3E9B7A] pulse-dot"></span>
+      Venezuela · Tiempo real
+    </div>
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mt-2">
+      <div>
+        <h1 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight">Tasas de cambio VE</h1>
+        <p class="text-paperdim text-sm max-w-md mt-1 leading-relaxed">BCV oficial (dólar y euro) y referencia del mercado paralelo/USDT usada por Binance P2P.</p>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <span id="statusText" class="font-mono text-xs text-paperdim">Cargando…</span>
+        <button id="refreshBtn" onclick="loadRates()"
+          class="bg-bolivar hover:bg-[#359075] transition-colors text-[#08221A] font-semibold text-xs px-4 py-2 rounded-full disabled:opacity-50">
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Rate cards ===== -->
+  <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+    <div class="relative overflow-hidden bg-panel border border-white/10 rounded-2xl p-5 pl-6">
+      <div class="absolute left-0 top-0 h-full w-[3px] bg-bolivar"></div>
+      <div class="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-paperdim mb-2">
+        <span>BCV · Dólar oficial</span><span class="text-bolivar">USD</span>
+      </div>
+      <div class="flex items-baseline gap-1.5 font-display font-semibold text-2xl sm:text-3xl">
+        <span id="bcvUsd">—</span><small class="font-mono text-xs text-paperdim font-normal">Bs./USD</small>
+      </div>
+      <div class="mt-3 font-mono text-xs text-paperdim">Fecha: <b id="bcvUsdDate" class="text-paper font-medium">—</b></div>
+    </div>
+
+    <div class="relative overflow-hidden bg-panel border border-white/10 rounded-2xl p-5 pl-6">
+      <div class="absolute left-0 top-0 h-full w-[3px] bg-euro"></div>
+      <div class="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-paperdim mb-2">
+        <span>BCV · Euro oficial</span><span class="text-euro">EUR</span>
+      </div>
+      <div class="flex items-baseline gap-1.5 font-display font-semibold text-2xl sm:text-3xl">
+        <span id="bcvEur">—</span><small class="font-mono text-xs text-paperdim font-normal">Bs./EUR</small>
+      </div>
+      <div class="mt-3 font-mono text-xs text-paperdim">Fecha: <b id="bcvEurDate" class="text-paper font-medium">—</b></div>
+    </div>
+
+    <div class="relative overflow-hidden bg-panel border border-white/10 rounded-2xl p-5 pl-6">
+      <div class="absolute left-0 top-0 h-full w-[3px] bg-binance"></div>
+      <div class="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-paperdim mb-2">
+        <span>Ref. Binance P2P</span><span class="text-binance">USDT</span>
+      </div>
+      <div class="flex items-baseline gap-1.5 font-display font-semibold text-2xl sm:text-3xl">
+        <span id="binanceUsd">—</span><small class="font-mono text-xs text-paperdim font-normal">Bs./USDT</small>
+      </div>
+      <div class="mt-3 font-mono text-xs text-paperdim">Fecha: <b id="binanceDate" class="text-paper font-medium">—</b></div>
+    </div>
+  </section>
+
+  <!-- ===== Brecha ===== -->
+  <section class="bg-panel border border-white/10 rounded-2xl p-5 sm:p-6 mb-6">
+    <div class="flex justify-between items-baseline flex-wrap gap-2 mb-3">
+      <h2 class="font-display text-lg">Brecha cambiaria (BCV vs. Binance)</h2>
+      <span id="brechaPct" class="font-mono text-2xl font-semibold text-danger">—</span>
+    </div>
+    <div class="h-2.5 rounded-full bg-white/5 overflow-hidden">
+      <div id="gaugeFill" class="h-full rounded-full bg-gradient-to-r from-bolivar to-binance w-0 transition-all duration-700 ease-out"></div>
+    </div>
+    <div class="flex justify-between mt-2 font-mono text-[11px] text-paperdim">
+      <span>BCV oficial</span><span>Binance P2P</span>
+    </div>
+  </section>
+
+  <!-- ===== Converter (tabs) ===== -->
+  <section class="bg-panel border border-white/10 rounded-2xl p-5 sm:p-6 mb-6">
+    <div class="flex gap-6 border-b border-white/10 mb-5 font-mono text-xs uppercase tracking-wider">
+      <button id="tabSimpleBtn" onclick="switchTab('simple')" class="pb-3 border-b-2 tab-active">Conversión simple</button>
+      <button id="tabMultiBtn" onclick="switchTab('multi')" class="pb-3 border-b-2 tab-inactive">Equivalencia total</button>
+    </div>
+
+    <!-- Tab: simple -->
+    <div id="panelSimple">
+      <p class="text-paperdim text-sm mb-4">Convierte entre bolívares, USDT (Binance) y USD/EUR (BCV oficial).</p>
+      <div class="flex flex-col sm:flex-row gap-3 sm:items-end mb-4">
+        <div class="flex-1 min-w-[120px]">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-paperdim mb-1.5">Monto</label>
+          <input type="number" id="amount" value="100" step="any" oninput="calculate()"
+            class="w-full bg-ink2 border border-white/10 rounded-lg px-3 py-2.5 font-mono text-[15px] text-paper focus:outline-none focus:border-binance">
+        </div>
+        <div class="flex-1 min-w-[140px]">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-paperdim mb-1.5">De</label>
+          <select id="fromCur" onchange="calculate()"
+            class="w-full bg-ink2 border border-white/10 rounded-lg px-3 py-2.5 font-mono text-[15px] text-paper focus:outline-none focus:border-binance">
+            <option value="USDT">USDT (Binance)</option>
+            <option value="USD_BCV">USD (BCV oficial)</option>
+            <option value="EUR_BCV">EUR (BCV oficial)</option>
+            <option value="VES">Bolívares (VES)</option>
+          </select>
+        </div>
+        <button onclick="swapCur()" title="Invertir"
+          class="shrink-0 w-10 h-10 rounded-lg border border-white/10 text-paperdim hover:text-binance hover:border-binance transition-colors self-center sm:self-end">⇅</button>
+        <div class="flex-1 min-w-[140px]">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-paperdim mb-1.5">A</label>
+          <select id="toCur" onchange="calculate()"
+            class="w-full bg-ink2 border border-white/10 rounded-lg px-3 py-2.5 font-mono text-[15px] text-paper focus:outline-none focus:border-binance">
+            <option value="VES">Bolívares (VES)</option>
+            <option value="USD_BCV">USD (BCV oficial)</option>
+            <option value="EUR_BCV">EUR (BCV oficial)</option>
+            <option value="USDT">USDT (Binance)</option>
+          </select>
+        </div>
+      </div>
+      <div class="bg-ink2 rounded-xl px-4 py-4 flex justify-between items-center flex-wrap gap-2">
+        <span class="font-mono text-xs text-paperdim">Resultado</span>
+        <span id="calcResult" class="font-display text-2xl text-bolivar">—</span>
+      </div>
+    </div>
+
+    <!-- Tab: multi -->
+    <div id="panelMulti" class="hidden">
+      <p class="text-paperdim text-sm mb-4">Escribe un monto en cualquier moneda y mira al instante cuánto es en las demás.</p>
+      <div class="flex flex-col sm:flex-row gap-3 mb-4">
+        <div class="w-full sm:w-40">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-paperdim mb-1.5">Monto</label>
+          <input type="number" id="multiAmount" value="5" step="any" oninput="calculateMulti()"
+            class="w-full bg-ink2 border border-white/10 rounded-lg px-3 py-2.5 font-mono text-[15px] text-paper focus:outline-none focus:border-binance">
+        </div>
+        <div class="w-full sm:w-56">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-paperdim mb-1.5">Moneda</label>
+          <select id="multiCur" onchange="calculateMulti()"
+            class="w-full bg-ink2 border border-white/10 rounded-lg px-3 py-2.5 font-mono text-[15px] text-paper focus:outline-none focus:border-binance">
+            <option value="USDT">USDT (Binance)</option>
+            <option value="USD_BCV">USD (BCV oficial)</option>
+            <option value="EUR_BCV">EUR (BCV oficial)</option>
+            <option value="VES">Bolívares (VES)</option>
+          </select>
+        </div>
+      </div>
+      <div id="multiGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+    </div>
+  </section>
+
+  <!-- ===== History ===== -->
+  <section class="bg-panel border border-white/10 rounded-2xl p-5 sm:p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-display text-lg">Historial de consultas</h2>
+      <button onclick="clearHistory()"
+        class="font-mono text-[11px] text-paperdim border border-white/10 rounded-md px-3 py-1.5 hover:text-danger hover:border-danger transition-colors">Borrar</button>
+    </div>
+    <div id="histWrap" class="overflow-x-auto"></div>
+  </section>
+
+  <footer class="text-center font-mono text-[11px] text-paperdim leading-relaxed">
+    Fuente: DolarApi.com (datos públicos, tasa BCV oficial y referencia de mercado paralelo/P2P).<br>
+    La referencia "Binance P2P" es un promedio de mercado paralelo, no una cotización directa de Binance.
+  </footer>
+</div>
+
+<script>
+let rates = { bcvUsd:null, bcvEur:null, binance:null, bcvUsdDate:null, bcvEurDate:null, binanceDate:null };
+let history = [];
+
+function switchTab(tab){
+  const simpleBtn = document.getElementById('tabSimpleBtn');
+  const multiBtn = document.getElementById('tabMultiBtn');
+  const simplePanel = document.getElementById('panelSimple');
+  const multiPanel = document.getElementById('panelMulti');
+  if(tab === 'simple'){
+    simpleBtn.className = 'pb-3 border-b-2 tab-active';
+    multiBtn.className = 'pb-3 border-b-2 tab-inactive';
+    simplePanel.classList.remove('hidden');
+    multiPanel.classList.add('hidden');
+  } else {
+    multiBtn.className = 'pb-3 border-b-2 tab-active';
+    simpleBtn.className = 'pb-3 border-b-2 tab-inactive';
+    multiPanel.classList.remove('hidden');
+    simplePanel.classList.add('hidden');
+    calculateMulti();
+  }
+}
+
+async function fetchJSON(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+function fmt(n, dec=4){
+  if(n===null || n===undefined || isNaN(n)) return '—';
+  return Number(n).toLocaleString('es-VE',{minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return iso; }
+}
+
+async function loadRates(){
+  const btn = document.getElementById('refreshBtn');
+  const statusText = document.getElementById('statusText');
+  btn.disabled = true;
+  statusText.textContent = 'Actualizando…';
+  statusText.classList.remove('text-danger');
+  statusText.classList.add('text-paperdim');
+
+  let ok = true;
+  try{
+    const usd = await fetchJSON('https://ve.dolarapi.com/v1/dolares/oficial');
+    rates.bcvUsd = usd.promedio ?? usd.venta ?? usd.compra;
+    rates.bcvUsdDate = usd.fechaActualizacion;
+  }catch(e){ ok = false; console.error('BCV USD', e); }
+
+  try{
+    const eur = await fetchJSON('https://ve.dolarapi.com/v1/euros/oficial');
+    rates.bcvEur = eur.promedio ?? eur.venta ?? eur.compra;
+    rates.bcvEurDate = eur.fechaActualizacion;
+  }catch(e){ ok = false; console.error('BCV EUR', e); }
+
+  try{
+    const par = await fetchJSON('https://ve.dolarapi.com/v1/dolares/paralelo');
+    rates.binance = par.promedio ?? par.venta ?? par.compra;
+    rates.binanceDate = par.fechaActualizacion;
+  }catch(e){ ok = false; console.error('Binance/Paralelo', e); }
+
+  document.getElementById('bcvUsd').textContent = fmt(rates.bcvUsd,2);
+  document.getElementById('bcvUsdDate').textContent = fmtDate(rates.bcvUsdDate);
+  document.getElementById('bcvEur').textContent = fmt(rates.bcvEur,2);
+  document.getElementById('bcvEurDate').textContent = fmtDate(rates.bcvEurDate);
+  document.getElementById('binanceUsd').textContent = fmt(rates.binance,2);
+  document.getElementById('binanceDate').textContent = fmtDate(rates.binanceDate);
+
+  updateBrecha();
+  calculate();
+  calculateMulti();
+
+  if(ok){
+    statusText.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
+    saveHistoryPoint();
+  } else {
+    statusText.textContent = 'Algunas tasas no cargaron. Intenta de nuevo.';
+    statusText.classList.remove('text-paperdim');
+    statusText.classList.add('text-danger');
+  }
+  btn.disabled = false;
+}
+
+function updateBrecha(){
+  const fill = document.getElementById('gaugeFill');
+  const pctEl = document.getElementById('brechaPct');
+  if(rates.bcvUsd && rates.binance && rates.bcvUsd > 0){
+    const brecha = ((rates.binance - rates.bcvUsd) / rates.bcvUsd) * 100;
+    pctEl.textContent = (brecha>=0?'+':'') + brecha.toFixed(1) + '%';
+    const width = Math.min(100, Math.max(6, 50 + brecha));
+    fill.style.width = width + '%';
+  } else {
+    pctEl.textContent = '—';
+    fill.style.width = '0%';
+  }
+}
+
+function swapCur(){
+  const f = document.getElementById('fromCur');
+  const t = document.getElementById('toCur');
+  const tmp = f.value; f.value = t.value; t.value = tmp;
+  calculate();
+}
+
+function toVES(amount, cur){
+  if(cur==='VES') return amount;
+  if(cur==='USD_BCV') return rates.bcvUsd ? amount * rates.bcvUsd : null;
+  if(cur==='EUR_BCV') return rates.bcvEur ? amount * rates.bcvEur : null;
+  if(cur==='USDT') return rates.binance ? amount * rates.binance : null;
+  return null;
+}
+function fromVES(vesAmount, cur){
+  if(cur==='VES') return vesAmount;
+  if(cur==='USD_BCV') return rates.bcvUsd ? vesAmount / rates.bcvUsd : null;
+  if(cur==='EUR_BCV') return rates.bcvEur ? vesAmount / rates.bcvEur : null;
+  if(cur==='USDT') return rates.binance ? vesAmount / rates.binance : null;
+  return null;
+}
+const curLabel = {VES:'Bs.', USD_BCV:'USD (BCV)', EUR_BCV:'EUR (BCV)', USDT:'USDT'};
+const allCurrencies = ['USDT','USD_BCV','EUR_BCV','VES'];
+
+function calculate(){
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const from = document.getElementById('fromCur').value;
+  const to = document.getElementById('toCur').value;
+  const ves = toVES(amount, from);
+  const result = ves===null ? null : fromVES(ves, to);
+  const el = document.getElementById('calcResult');
+  el.textContent = result===null ? 'Esperando tasas…' : fmt(result, to==='VES'?2:4) + ' ' + curLabel[to];
+}
+
+function calculateMulti(){
+  const amount = parseFloat(document.getElementById('multiAmount').value) || 0;
+  const from = document.getElementById('multiCur').value;
+  const grid = document.getElementById('multiGrid');
+  const ves = toVES(amount, from);
+
+  if(ves === null){
+    grid.innerHTML = '<div class="col-span-full text-paperdim text-sm">Esperando tasas…</div>';
+    return;
+  }
+  grid.innerHTML = allCurrencies.map(cur => {
+    const val = fromVES(ves, cur);
+    const isSelf = cur === from;
+    return `<div class="bg-ink2 border rounded-xl px-3.5 py-3 ${isSelf ? 'border-binance' : 'border-white/10'}">
+      <div class="font-mono text-[10px] uppercase tracking-wider text-paperdim mb-1.5">${curLabel[cur]}</div>
+      <div class="font-display text-lg">${val===null ? '—' : fmt(val, cur==='VES'?2:4)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function saveHistoryPoint(){
+  if(!rates.bcvUsd && !rates.binance) return;
+  const point = {
+    ts: new Date().toISOString(),
+    bcvUsd: rates.bcvUsd, bcvEur: rates.bcvEur, binance: rates.binance,
+    brecha: (rates.bcvUsd && rates.binance) ? (((rates.binance-rates.bcvUsd)/rates.bcvUsd)*100) : null
+  };
+  history.unshift(point);
+  history = history.slice(0, 30);
+  try{ await window.storage.set('tasas-ve-history', JSON.stringify(history), false); }
+  catch(e){ console.error('storage set failed', e); }
+  renderHistory();
+}
+async function loadHistory(){
+  try{
+    const res = await window.storage.get('tasas-ve-history', false);
+    if(res && res.value){ history = JSON.parse(res.value); }
+  }catch(e){ history = []; }
+  renderHistory();
+}
+async function clearHistory(){
+  history = [];
+  try{ await window.storage.delete('tasas-ve-history', false); }catch(e){}
+  renderHistory();
+}
+function renderHistory(){
+  const wrap = document.getElementById('histWrap');
+  if(!history.length){
+    wrap.innerHTML = '<div class="text-paperdim text-sm py-2">Aún no hay tasas guardadas en esta sesión.</div>';
+    return;
+  }
+  let rows = history.map(p => `
+    <tr class="border-b border-white/5">
+      <td class="py-2 px-2 whitespace-nowrap">${fmtDate(p.ts)}</td>
+      <td class="py-2 px-2">${fmt(p.bcvUsd,2)}</td>
+      <td class="py-2 px-2">${fmt(p.bcvEur,2)}</td>
+      <td class="py-2 px-2">${fmt(p.binance,2)}</td>
+      <td class="py-2 px-2">${p.brecha!==null ? (p.brecha>=0?'+':'')+p.brecha.toFixed(1)+'%' : '—'}</td>
+    </tr>`).join('');
+  wrap.innerHTML = `<table class="w-full border-collapse font-mono text-xs min-w-[480px]">
+    <thead>
+      <tr class="text-paperdim uppercase text-[10px] tracking-wider border-b border-white/10">
+        <th class="text-left py-2 px-2">Fecha</th><th class="text-left py-2 px-2">BCV USD</th>
+        <th class="text-left py-2 px-2">BCV EUR</th><th class="text-left py-2 px-2">Binance USDT</th>
+        <th class="text-left py-2 px-2">Brecha</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+(async function init(){
+  await loadHistory();
+  await loadRates();
+})();
+</script>
+</body>
+</html>
