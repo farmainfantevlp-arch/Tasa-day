@@ -382,20 +382,20 @@ async function saveHistoryPoint(){
   };
   history.unshift(point);
   history = history.slice(0, 30);
-  try{ await window.storage.set('tasas-ve-history', JSON.stringify(history), false); }
+  try{ localStorage.setItem('tasas-ve-history', JSON.stringify(history)); }
   catch(e){ console.error('storage set failed', e); }
   renderHistory();
 }
 async function loadHistory(){
   try{
-    const res = await window.storage.get('tasas-ve-history', false);
-    if(res && res.value){ history = JSON.parse(res.value); }
+    const raw = localStorage.getItem('tasas-ve-history');
+    if(raw){ history = JSON.parse(raw); }
   }catch(e){ history = []; }
   renderHistory();
 }
 async function clearHistory(){
   history = [];
-  try{ await window.storage.delete('tasas-ve-history', false); }catch(e){}
+  try{ localStorage.removeItem('tasas-ve-history'); }catch(e){}
   renderHistory();
 }
 function renderHistory(){
